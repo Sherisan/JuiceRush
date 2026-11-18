@@ -4,17 +4,17 @@
  * Every fruit the player slices hides a bomb with a fixed chance. A safe slice multiplies the round's
  * fair value by 1 / P(safe), the fruit's "boost". The RTP is applied ONCE to the whole round, not per slice:
  *
- *     multiplier = floor(97 × Π outOf / Π safe) / 100        (capped at MAX_MULTIPLIER)
+ *     multiplier = floor(96 × Π outOf / Π safe) / 100        (capped at MAX_MULTIPLIER)
  *
  * so the cash-out value of any position is RTP / P(reaching it). Whatever the player slices and whenever they
  * cash out, the expected return is RTP × bet, and flooring to the cent only ever takes a little more off.
- * Cashing out after a single cherry pays ×1.07 nine times in ten: 96.3%, below the 97% target.
+ * Cashing out after a single cherry pays ×1.06 nine times in ten: 95.4%, below the 96% target.
  *
  * Products are exact (BigInt), so the client, the server and the verifier never disagree on a rounding edge.
  */
 
-export const RTP = 0.97;
-const RTP_PERCENT = 97n;
+export const RTP = 0.96;
+const RTP_PERCENT = 96n;
 /** Top prize. Reaching it settles the round automatically. */
 export const MAX_MULTIPLIER = 1000;
 const MAX_CENTS = BigInt(MAX_MULTIPLIER * 100);

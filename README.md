@@ -8,7 +8,7 @@ and the bet is lost.
 npm install
 npm run dev      # http://localhost:5184
 npm run build
-npm run rtp      # exact + simulated RTP check (fails if any strategy beats 97%)
+npm run rtp      # exact + simulated RTP check (fails if any strategy beats 96%)
 ```
 
 The game plays against the game API (FeedingFranzeeAPI, `api/fruit`). In dev, Vite proxies `/api` to
@@ -16,30 +16,30 @@ http://localhost:5003 and the API's `/api/dev-token` signs in a demo player. Pro
 with the lobby's `?token=`. Open the game with `?demo` (or build with `VITE_DEMO=1`) to play offline against the
 in-browser engine (`createLocalEngine()` in `src/game/engine.ts`, demo wallet R1,000).
 
-## Math (RTP 97%)
+## Math (RTP 96%)
 
 | Fruit        | Bomb inside | Boost | 1 slice, cash out | Return | Tossed |
 |--------------|------------:|------:|------------------:|-------:|-------:|
-| Cherry       | 1 in 10     | ×1.11 | ×1.07             | 96.30% | 30%    |
-| Lemon        | 1 in 5      | ×1.25 | ×1.21             | 96.80% | 24%    |
-| Orange       | 1 in 3      | ×1.5  | ×1.45             | 96.67% | 20%    |
-| Coconut      | 1 in 2      | ×2    | ×1.94             | 97.00% | 13%    |
-| Watermelon   | 3 in 4      | ×4    | ×3.88             | 97.00% | 8%     |
-| Dragon fruit | 9 in 10     | ×10   | ×9.70             | 97.00% | 5%     |
+| Cherry       | 1 in 10     | ×1.11 | ×1.06             | 95.40% | 30%    |
+| Lemon        | 1 in 5      | ×1.25 | ×1.20             | 96.00% | 24%    |
+| Orange       | 1 in 3      | ×1.5  | ×1.44             | 96.00% | 20%    |
+| Coconut      | 1 in 2      | ×2    | ×1.92             | 96.00% | 13%    |
+| Watermelon   | 3 in 4      | ×4    | ×3.84             | 96.00% | 8%     |
+| Dragon fruit | 9 in 10     | ×10   | ×9.60             | 96.00% | 5%     |
 
 ```
-multiplier = floor(97 × Π outOf / Π safe) / 100      (safe = outOf − bombs, over every safe slice)
+multiplier = floor(96 × Π outOf / Π safe) / 100      (safe = outOf − bombs, over every safe slice)
 payout     = floor(bet × multiplier to the cent)
 ```
 
-Each boost is exactly `1 / P(safe)`, and the 97% is applied **once per round**, not per slice. So the cash-out value of
-any position is `0.97 / P(reaching it)`, and the round's value is a martingale: whatever the player slices, in any
-order, and whenever they cash out, the expected return is 97% at most. Flooring only takes more off. Playing safe
-does not help. Cashing out after a single cherry wins 90% of the time but pays ×1.07, a 96.3% return. Products are
+Each boost is exactly `1 / P(safe)`, and the 96% is applied **once per round**, not per slice. So the cash-out value of
+any position is `0.96 / P(reaching it)`, and the round's value is a martingale: whatever the player slices, in any
+order, and whenever they cash out, the expected return is 96% at most. Flooring only takes more off. Playing safe
+does not help. Cashing out after a single cherry wins 90% of the time but pays ×1.06, a 95.4% return. Products are
 exact (`BigInt`), so client, server and verifier never disagree on a rounding edge. See `src/game/math.ts`.
 
 `npm run rtp` checks all 9,467 slice sequences up to length 5, long single-fruit runs up to the cap, and 1M simulated
-rounds for several adaptive strategies. The best fixed strategy returns exactly 97.00%. No strategy returns more.
+rounds for several adaptive strategies. The best fixed strategy returns exactly 96.00%. No strategy returns more.
 
 **Max win**: ×1000 (`MAX_MULTIPLIER`), paid automatically when reached. The cap only ever lowers the return. Slicing
 past it is a bad bet, and the fruit menu's "If safe" column shows ×1000.00 when it is. The API refuses a config whose

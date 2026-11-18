@@ -1,5 +1,5 @@
 import type { RoundView } from '../game/engine';
-import { FRUITS } from '../game/math';
+import { FRUITS, MAX_MULTIPLIER } from '../game/math';
 import { formatMoney, formatMultiplier } from '../game/money';
 
 export function ResultOverlay({
@@ -24,7 +24,7 @@ export function ResultOverlay({
       amount: `+${formatMoney(round.payout, currency)}`,
       meta: `Cashed out at ${formatMultiplier(round.multiplier)} after ${safeCount} slice${safeCount === 1 ? '' : 's'}`,
     },
-    maxed: { title: 'MAX WIN!', amount: `+${formatMoney(round.payout, currency)}`, meta: `${formatMultiplier(round.multiplier)} · the top prize` },
+    maxed: { title: 'MAX WIN!', amount: `+${formatMoney(round.payout, currency)}`, meta: `${formatMultiplier(round.multiplier)} · ${round.multiplier >= MAX_MULTIPLIER ? 'the top prize' : 'max win reached'}` },
     exploded: {
       title: 'BOOM!',
       amount: `−${formatMoney(round.bet, currency)}`,
