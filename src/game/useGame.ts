@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { onRecovered } from '../net/connectionGuard';
 import type { FruitApi, Snapshot } from './engine';
 import type { FruitKind } from './math';
 import { sound } from './sound';
@@ -35,6 +36,18 @@ export function useGame(api: FruitApi) {
   useEffect(() => {
     api.init().then(commit, (e: Error) => setError(e.message));
   }, [api, commit]);
+
+  // Connection-loss safety: after a reconnect the server has refunded (or cashed out) whatever the drop left open, so
+  // reload the board from it. The "Connecting to server…" panel stays up until this finishes.
+  useEffect(
+    () =>
+      onRecovered(async () => {
+        const next = await api.init();
+        setShowResult(false);
+        commit(next);
+      }),
+    [api, commit],
+  );
 
   useEffect(() => {
     if (!error) return;

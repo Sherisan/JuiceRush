@@ -1,4 +1,5 @@
 import type { Fairness, FruitApi, HistoryEntry, RoundView, Snapshot } from './engine';
+import { assertOnline, connectionLost, ConnectionLostError, isUnreachableStatus, startConnectionGuard } from '../net/connectionGuard';
 
 /*
  * Client for the game API's api/fruit endpoints (FeedingFranzeeAPI: Engine `Fruit`, GameId `juice-rush`, see
@@ -44,6 +45,7 @@ async function fetchToken(): Promise<string> {
 }
 
 async function call<T>(path: string, body?: unknown): Promise<T> {
+  assertOnline(); // nothing is sent (or bet) while the connection is down
   const auth = await getToken();
   let res: Response;
   try {
@@ -53,7 +55,12 @@ async function call<T>(path: string, body?: unknown): Promise<T> {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {
-    throw new Error('Connection lost.');
+    connectionLost();
+    throw new ConnectionLostError();
+  }
+  if (isUnreachableStatus(res.status)) {
+    connectionLost();
+    throw new ConnectionLostError();
   }
   if (res.status === 429) throw new Error('Too many requests. Slow down a little.');
   if (res.status === 401) throw new Error('Your session has expired. Reopen the game from the lobby.');
@@ -95,6 +102,8 @@ export function createHttpEngine(): FruitApi {
 
   return {
     async init() {
+      // Connection-loss safety: the server settles anything a dropped connection left open before the board loads.
+      await startConnectionGuard({ apiBase: API_BASE, getToken, heartbeat: true });
       const [i, wallet, board] = await Promise.all([
         call<Info>('/api/fruit/info'),
         call<{ balance: number }>('/api/wallet/balance'),
